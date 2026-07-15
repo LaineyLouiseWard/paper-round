@@ -1,5 +1,5 @@
 <div align="center">
-<img src="assets/clawd-delivery.png" alt="Clawd delivering the paper round" width="360">
+<img src="assets/clawd.png" alt="Clawd delivering the paper round" width="360">
 <h1>Paper Round</h1>
 <p>
 <a href="https://claude.com/product/claude-code"><img src="https://img.shields.io/badge/powered_by-Claude_Code-D97757?logo=claude&logoColor=white" alt="powered by Claude Code"></a>
