@@ -35,6 +35,9 @@ Broader but still clearly on-topic. One trigger per strand works well.
 - (strand 1, stated broadly)
 - (strand 2, stated broadly)
 - (methods you use, applied anywhere in your field)
+- Any paper by the research groups I always read: (name the PIs or
+  groups here; author names are shown during screening when the feed
+  provides them)
 
 ## Automatic exclusions (score 0, do not evaluate further)
 

@@ -149,8 +149,19 @@ def fetch_rss(name: str, url: str) -> list[dict]:
             "abstract": abstract,
             "link": link,
             "source": name,
+            "authors": (entry.get("author") or "").strip(),
         })
     return papers
+
+
+def _author_string(names: list[str]) -> str:
+    """First few author names, with et al. beyond four."""
+    names = [n for n in names if n]
+    if not names:
+        return ""
+    if len(names) > 4:
+        return ", ".join(names[:4]) + " et al."
+    return ", ".join(names)
 
 
 def fetch_crossref(name: str, issn: str) -> list[dict]:
@@ -184,11 +195,16 @@ def fetch_crossref(name: str, issn: str) -> list[dict]:
 
         abstract = strip_html(item.get("abstract", ""))
         link = item.get("URL", "")
+        authors = _author_string(
+            [f"{a.get('given', '')} {a.get('family', '')}".strip()
+             for a in item.get("author", [])]
+        )
         papers.append({
             "title": title,
             "abstract": abstract,
             "link": link,
             "source": name,
+            "authors": authors,
         })
     return papers
 
@@ -278,11 +294,16 @@ def fetch_openalex(name: str, issn: str) -> list[dict]:
                     pos[i] = word
             abstract = " ".join(pos[i] for i in sorted(pos))
         link = item.get("doi") or item.get("id", "")
+        authors = _author_string(
+            [a.get("author", {}).get("display_name", "")
+             for a in item.get("authorships", [])]
+        )
         papers.append({
             "title": title,
             "abstract": abstract,
             "link": link,
             "source": name,
+            "authors": authors,
         })
     return papers
 
@@ -424,6 +445,8 @@ def build_user_prompt(papers: list[dict]) -> str:
         lines.append(f"[{i}]")
         lines.append(f"Title: {p['title']}")
         lines.append(f"Source: {p['source']}")
+        if p.get("authors"):
+            lines.append(f"Authors: {p['authors']}")
         if p["abstract"]:
             # Truncate very long abstracts to ~500 words
             words = p["abstract"].split()
