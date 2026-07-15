@@ -20,13 +20,13 @@ metadata and open-access PDF links.
 subscription is the engine. Adapted from the workflow I built for my own
 PhD ([Lainey Ward](https://github.com/LaineyLouiseWard)).
 
-![Example daily digest](assets/digest.png)
+![Example daily digest](assets/email.png)
 
 ## 🚀 Start here
 
 **Fastest path (recommended):** click **[Use this template](https://github.com/LaineyLouiseWard/paper-round/generate)**,
 open your new repo in Claude Code, and paste this one prompt. *Claude
-does the setup with you, conversationally:*
+does the setup for you:*
 
 ```text
 Set up Paper Round (this repo) for me.
@@ -71,12 +71,11 @@ Set up Paper Round (this repo) for me.
   DOI, logging to a committed CSV, and filing into Zotero.
 - **Claude does exactly one thing**: judge each new paper against
   `research_scope.md` and `relevance_rules.md`.
-- **Failures are loud, never invented.** The routine's integrity rules pin
-  every claimed paper to the fetched data, because a screening agent whose
-  fetch fails will otherwise *invent plausible papers* — the first live
-  run of this pipeline produced seven fabricated papers with DOIs that
-  resolved to 404 pages. Under the rules, "0 new papers" is a successful
-  outcome and any failure is quoted verbatim in the digest.
+- **It can't make papers up.** Every paper in your email comes straight
+  from what the feeds returned that morning, and if a source is down the
+  email says so plainly. (The rules enforcing this were earned the hard
+  way: an early run whose feeds broke invented seven convincing papers
+  before they existed.)
 
 ## ✍️ Writing your scope and rules
 
@@ -95,12 +94,11 @@ list does most of the filtering work, so grow it freely.
 
 ## ☁️ Schedule the cloud routine
 
-Each morning a Claude Code cloud agent clones this repo, runs the
-pipeline, and emails you. A push notification states the outcome either
-way, so *a failed run announces itself*. Runs draw on your normal plan
-usage — a few minutes of the cheapest model per day.
+Each morning a Claude Code cloud agent opens this repo, runs the
+pipeline, and emails you. You also get a notification saying how the run
+went. It uses a few minutes of your plan's cheapest model per day.
 
-Each step below guards against a real failure mode:
+Setting it up is four steps, done once:
 
 1. **Grant GitHub access.** The cloud agent clones via the Claude GitHub
    App, not your local credentials. Configure it at
@@ -117,10 +115,9 @@ Each step below guards against a real failure mode:
    prompt daily at 6am against my repo"*) or use
    [claude.ai/code/routines](https://claude.ai/code/routines). Cheapest
    model tier; cron times are UTC.
-4. **Fire a manual test run** and read the push notification: it states
-   `Digest EMAILED …`, `Resend FAILED …`, or `Email FAILED …` with the
-   digest preserved. *Check the commit, your Zotero inbox, and the email
-   before trusting it.*
+4. **Run it once manually** and check the three places papers land: the
+   email, your Zotero inbox, and the commit. The notification tells you
+   how the run went.
 
 ## 🔑 Keys
 
@@ -130,9 +127,9 @@ prompt (or environment variables) in the cloud — **never commit them**.
 | Key | Where to get it | Needed for |
 | --- | --- | --- |
 | `RESEND_API_KEY` | free account at [resend.com](https://resend.com) | **the emailed digest.** Without a verified domain, send from `onboarding@resend.dev` (delivers only to your own Resend account email) |
-| `ZOTERO_API_KEY` | [zotero.org/settings/keys](https://www.zotero.org/settings/keys), write access | filing papers into your library. *Leave empty to skip Zotero and curate from the email* |
+| `ZOTERO_API_KEY` | free at [zotero.org/settings/keys](https://www.zotero.org/settings/keys) (tick write access) | filing papers into your library. *Leave empty to skip Zotero and curate from the email* |
 | `OPENALEX_API_KEY` | free from [openalex.org](https://openalex.org) | only if `config.yaml` lists `openalex_sources` (journals with no workable RSS) |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | local screening runs only; *the cloud routine screens natively* |
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) (pay per use) | only for running `screen.py` on your own computer. *The daily cloud run already includes Claude, so it never needs this* |
 
 ## 📁 Project structure
 
@@ -153,8 +150,8 @@ file you edit.
 
 ## 🛠️ Troubleshooting
 
-If the four setup steps are done, none of these should fire. When one
-does anyway:
+Done the four setup steps? Then you shouldn't ever see these. If one
+turns up anyway, the fix is a click away:
 
 <details>
 <summary><b>Expand the failure table</b></summary>
@@ -176,10 +173,10 @@ does anyway:
 included usage: a few minutes of the cheapest model per day. *No separate
 bill, no per-token API charges.*
 
-**Will it hallucinate papers?** That's what the integrity rules are for:
-every paper must appear verbatim in the fetched feed data, and failures
-get reported instead of papered over. Spot-check a DOI occasionally
-anyway — trust, but verify.
+**Will it hallucinate papers?** No: every paper in the email must appear
+word-for-word in what the feeds returned that morning, and if a source
+breaks the email says which one. Spot-check a DOI occasionally anyway —
+trust, but verify.
 
 **Does it get me past paywalls?** No. Cards link the paper's page, plus
 an open-access PDF whenever [Unpaywall](https://unpaywall.org/) knows one.
@@ -193,8 +190,8 @@ cloud routine is just the zero-infrastructure way.
 
 ## 🤝 Contributing
 
-Issues and pull requests welcome — especially working feed patterns for
-more publishers and example scope files from other fields.
+Found a bug, or got a feed working for another publisher? Open an issue
+or a PR — all welcome.
 
 ## ❤️ Acknowledgements
 
