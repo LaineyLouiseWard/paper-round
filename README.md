@@ -2,6 +2,7 @@
 <img src="assets/paper-round-logo.png" alt="Paper Round logo" width="200">
 <h1>Paper Round</h1>
 <p>
+<a href="https://claude.com/product/claude-code"><img src="https://img.shields.io/badge/powered_by-Claude_Code-D97757?logo=claude&logoColor=white" alt="powered by Claude Code"></a>
 <a href="https://github.com/LaineyLouiseWard/paper-round"><img src="https://img.shields.io/badge/status-active-brightgreen" alt="status"></a>
 <a href="https://github.com/LaineyLouiseWard/paper-round/stargazers"><img src="https://img.shields.io/github/stars/LaineyLouiseWard/paper-round" alt="stars"></a>
 <a href="https://github.com/LaineyLouiseWard/paper-round/issues"><img src="https://img.shields.io/github/issues/LaineyLouiseWard/paper-round" alt="issues"></a>
