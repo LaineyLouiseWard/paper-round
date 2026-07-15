@@ -124,10 +124,10 @@ digest now and then.
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | Routine disabled itself, "init failed" | Claude GitHub App can't clone the (private) repo | Grant repo access: github.com → Settings → Applications → Claude → Configure |
 | Run reports network/proxy errors | Environment allowlist blocks feeds/APIs | Environment settings → Network access → Custom → add the domains from step 3.2 |
-| Gmail calls fail with "insufficient authentication scopes" | Connector authorized without full permissions | Disconnect and reconnect Gmail, approving every scope |
+| Gmail calls fail with "insufficient authentication scopes" or "authorization has expired" | Connector token limited or expired — note that setting tool permissions to "Always allow" is NOT re-authentication | **Disconnect** and re-**Connect** Gmail at claude.ai/settings/connectors, signing in again and approving every scope |
 | Digest never arrives | Wrong Google account on the connector, or draft-only connector | Check which account the connector uses; check its Drafts; read the run's push notification — it states the outcome |
 | Digest lists papers that don't exist | Fetch failed and the model improvised | Keep the integrity rules block; spot-check DOIs; read the failure line in the email footer |
 | First run finds hundreds of papers | Feeds' full current contents on an empty `seen_papers.txt` | Expected one-off backlog flush; daily volume is a handful |
