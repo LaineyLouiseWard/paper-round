@@ -12,10 +12,10 @@
 </div>
 
 Journal alerts bury the two papers you need under two hundred you don't.
-Paper Round reads the tables of contents for you: **one email each
-morning** with only the papers that matter to *your* research — each one
-scored, summarised in a line, and filed into your **Zotero** library with
-full metadata and open-access PDF links.
+Paper Round checks every new paper in the journals you follow and sends
+you **one email each morning** with the ones that match your research.
+Each paper arrives with a one-line reason it was picked, and lands in
+your **Zotero** library with full metadata and an open-access PDF link.
 
 **No server. No GitHub Actions. No LLM API key.** A claude.ai Pro/Max
 subscription is the engine. Adapted from the workflow I built for my own
