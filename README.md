@@ -1,7 +1,8 @@
-# Literature Monitor Template
+# Paper Round
 
-A daily AI literature monitor for researchers and PhD students. A
-scheduled Claude agent screens the RSS feeds of your chosen journals
+Your daily paper round, except it delivers journal papers. A daily AI
+literature monitor for researchers and PhD students: a scheduled Claude
+agent screens the RSS feeds of your chosen journals
 against your written research scope, emails you a digest of relevant
 papers, files them into your Zotero library with full metadata and
 open-access PDF links, and commits an auditable log to this repo. You
