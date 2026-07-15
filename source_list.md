@@ -42,8 +42,8 @@ that screening stays cheap and the digest stays readable.
 | Wiley (AGU, RMetS, …) | `https://<domain>/feed/{ISSN}/most-recent` | Use the ISSN, not the journal code |
 | IOP | `https://iopscience.iop.org/journal/rss/{ISSN}` | Works directly |
 | arXiv | `https://export.arxiv.org/rss/{category}` | Works directly |
-| AMS | RSS is blocked by CloudFront bot protection | Add the journal to `CROSSREF_FALLBACKS` in `screen.py` instead (name substring → ISSN); articles then come from the free Crossref API |
-| Elsevier, Nature Portfolio, or any journal with no workable RSS | RSS broken, redirecting, or absent | Add the ISSN to `OPENALEX_SOURCES` in `screen.py`; articles then come from the free OpenAlex API (no key needed) |
+| AMS | RSS is blocked by CloudFront bot protection | Add the journal to `crossref_fallbacks` in `config.yaml` instead (name substring → ISSN); articles then come from the free Crossref API |
+| Elsevier, Nature Portfolio, or any journal with no workable RSS | RSS broken, redirecting, or absent | Add the ISSN to `openalex_sources` in `config.yaml`; articles come from the OpenAlex API (free key from openalex.org, set in `.env`) |
 
 Verify a candidate feed with `python screen.py --dry-run` before keeping it.
 

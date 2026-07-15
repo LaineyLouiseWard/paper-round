@@ -48,10 +48,13 @@ Everything the model claims must be traceable to what the code fetched
 3. Edit `research_scope.md` and `relevance_rules.md`. These two files *are*
    the screening prompt. The rules file keeps a 0 to 4 scale with an
    exclusions-first procedure; you fill in the triggers.
-4. Edit the config block at the top of `screen.py`: your contact email
-   (sent to Crossref and Unpaywall), your Zotero library ID and inbox
-   collection key, optional arXiv search terms, and Crossref fallbacks for
-   any AMS journals.
+4. Edit `config.yaml`: your contact email (sent to Crossref and Unpaywall),
+   your Zotero library and inbox collection, optional arXiv search terms,
+   and any Crossref or OpenAlex journal fallbacks. You never need to edit
+   `screen.py`.
+5. Copy `.env.example` to `.env` and fill in the keys you use. Zotero is
+   optional: leave `ZOTERO_API_KEY` empty and the pipeline skips the
+   library step, so you curate from the email digest instead.
 
 ### Writing your scope and rules
 
@@ -85,10 +88,16 @@ python screen.py
 
 ### 3. Schedule the cloud routine
 
-The daily automation is a Claude Code cloud routine (claude.ai Pro/Max).
-An agent in Anthropic's cloud clones this repo each morning, runs the
-pipeline, and emails you. Runs draw on your normal plan usage, a few
-minutes of the cheapest model per day, with no separate charge.
+The daily automation is a Claude Code cloud routine (claude.ai Pro/Max)
+that runs at whatever time you set, with no server or GitHub Actions of
+your own. Each morning an agent in Anthropic's cloud clones this repo,
+installs the two dependencies, fetches every feed, dedups against
+`seen_papers.txt`, reads your scope and rules, scores the new papers,
+adds the keepers to Zotero, commits the updated logs back to the repo,
+and emails you the digest. You also get a push notification stating the
+outcome, so a failed run announces itself instead of just going quiet.
+Runs draw on your normal plan usage, a few minutes of the cheapest model
+per day, with no separate charge.
 
 Each of these steps guards against a real failure mode. Skipping one gives
 you a silently dead (or worse, silently lying) monitor:
@@ -137,15 +146,21 @@ DOI from your digest now and then.
 
 ## Project structure
 
+Everything sits at the repo root on purpose: each file is either the
+pipeline itself or a file you are meant to edit, and `screen.py` finds its
+siblings by location.
+
 | File | Purpose |
 | ---- | ------- |
-| `screen.py` | Pipeline: fetch, dedup, screen, log, Zotero upload. Config block at top |
+| `screen.py` | Pipeline: fetch, dedup, screen, log, Zotero upload. No editing needed |
+| `config.yaml` | All your settings: email, Zotero library, sources, model |
+| `.env.example` | Template for `.env`, where your API keys live (gitignored) |
 | `source_list.md` | Your feeds, with working URL patterns per publisher |
 | `research_scope.md` | Your research context, one half of the screening prompt |
 | `relevance_rules.md` | The 0 to 4 scoring rules, the other half |
 | `routine_prompt.md` | The cloud routine's task prompt, with placeholders |
 | `paper_log.csv` | Papers scoring ≥ 3 (auto-generated, committed daily) |
-| `seen_papers.txt` | Normalised titles already screened (auto-generated) |
+| `seen_papers.txt` | Titles and DOIs already screened (auto-generated) |
 
 ## Troubleshooting
 

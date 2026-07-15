@@ -1,0 +1,37 @@
+# Literature monitor configuration. Edit this file, not screen.py.
+# Keys and secrets do NOT go here; they go in .env (see .env.example).
+
+# Contact email sent to Crossref and Unpaywall (polite-pool etiquette)
+contact_email: you@example.edu
+
+# Zotero target library. For a personal library set library_type: user and
+# use your userID from zotero.org/settings/keys; for a group library set
+# library_type: group and use the numeric ID from the group URL.
+# inbox_collection is the 8-character key of the collection new papers land
+# in, visible in that collection's URL. Optional: if ZOTERO_API_KEY is not
+# set in .env, the Zotero step is skipped entirely and you curate from the
+# email instead.
+zotero:
+  library_id: "0000000"
+  library_type: group
+  inbox_collection: XXXXXXXX
+
+# arXiv keyword search, OR-ed terms searched across all categories so
+# relevant preprints in cs.LG / stat.ML etc. are caught. Empty = skip.
+arxiv_search_terms: []
+#  - subseasonal prediction
+#  - forecast verification
+
+# Journals whose RSS is blocked by bot protection (e.g. AMS journals):
+# fetched from the free Crossref API instead. Feed-name substring -> ISSN.
+crossref_fallbacks: {}
+#  Weather and Forecasting: "1520-0434"
+
+# Journals with no workable RSS at all (Elsevier, Nature Portfolio):
+# fetched from the OpenAlex API. Needs OPENALEX_API_KEY in .env.
+openalex_sources: {}
+#  Journal of Hydrology: "0022-1694"
+openalex_days: 14
+
+# Screening model for local runs (the cloud routine screens natively)
+model: claude-haiku-4-5-20251001

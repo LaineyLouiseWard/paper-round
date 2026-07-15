@@ -17,6 +17,7 @@ Requires: feedparser, requests (anthropic only for local screening runs)
 import argparse
 import csv
 import json
+import os
 import re
 import sys
 from datetime import date, timedelta
@@ -27,6 +28,7 @@ import xml.etree.ElementTree as ET
 
 import feedparser
 import requests
+import yaml
 
 # ---------------------------------------------------------------------------
 # Paths — everything relative to this script's directory
@@ -38,48 +40,38 @@ RELEVANCE_RULES = DIR / "relevance_rules.md"
 PAPER_LOG = DIR / "paper_log.csv"
 SEEN_PAPERS = DIR / "seen_papers.txt"
 
+
+def _load_dotenv(path: Path) -> None:
+    """Load KEY=VALUE lines from .env into the environment (no override)."""
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            if v.strip():
+                os.environ.setdefault(k.strip(), v.strip())
+
+
+_load_dotenv(DIR / ".env")
+
 # ---------------------------------------------------------------------------
-# Config — EDIT THIS BLOCK for your own setup
+# Config — user settings live in config.yaml, keys in .env
 # ---------------------------------------------------------------------------
-# Contact email sent to Crossref and Unpaywall (polite-pool etiquette).
-CONTACT_EMAIL = "you@example.edu"
+_cfg = yaml.safe_load((DIR / "config.yaml").read_text())
+CONTACT_EMAIL = _cfg["contact_email"]
+ZOTERO_LIBRARY_ID = str(_cfg["zotero"]["library_id"])
+ZOTERO_LIBRARY_TYPE = _cfg["zotero"]["library_type"]
+ZOTERO_INBOX_KEY = _cfg["zotero"]["inbox_collection"]
+ARXIV_SEARCH_TERMS = _cfg.get("arxiv_search_terms") or []
+CROSSREF_FALLBACKS = {k: str(v) for k, v in (_cfg.get("crossref_fallbacks") or {}).items()}
+OPENALEX_SOURCES = {k: str(v) for k, v in (_cfg.get("openalex_sources") or {}).items()}
+OPENALEX_DAYS = _cfg.get("openalex_days", 14)
+MODEL = _cfg.get("model", "claude-haiku-4-5-20251001")
 
-# Zotero target library. For a personal library use type "user" and your
-# userID from zotero.org/settings/keys; for a group library use type "group"
-# and the numeric ID from the group URL. INBOX_KEY is the 8-character key of
-# the collection new papers land in (visible in the collection's URL).
-ZOTERO_LIBRARY_ID = "0000000"
-ZOTERO_LIBRARY_TYPE = "group"
-ZOTERO_INBOX_KEY = "XXXXXXXX"
-
-# arXiv keyword search: OR-ed terms searched across all categories, so
-# relevant preprints in cs.LG / stat.ML etc. are caught. Leave empty to skip.
-ARXIV_SEARCH_TERMS = [
-    # "subseasonal prediction",
-    # "forecast verification",
-]
-
-# Crossref fallback for publishers that block scripted RSS access (e.g. AMS
-# journals behind CloudFront). Maps a feed-name substring to the journal ISSN.
-CROSSREF_FALLBACKS = {
-    # "Weather and Forecasting": "1520-0434",
-}
-
-# Journals with no workable RSS at all (Elsevier, Nature Portfolio, ...) can
-# be monitored via the free OpenAlex API instead: no key needed, but add
-# api.openalex.org to the cloud allowlist. Maps display name to ISSN.
-OPENALEX_SOURCES = {
-    # "Journal of Hydrology": "0022-1694",
-}
-OPENALEX_DAYS = 14  # publication-date look-back window per run
-
-MODEL = "claude-haiku-4-5-20251001"  # cheapest tier; screening is a bounded task
 MAX_BATCH = 50  # max papers per API call
 CROSSREF_ROWS = 30  # max papers to fetch per Crossref query
 ARXIV_MAX_RESULTS = 50  # max papers from arXiv keyword search
-# ---------------------------------------------------------------------------
-# End of config
-# ---------------------------------------------------------------------------
 
 CSV_FIELDS = [
     "date", "title", "source", "link",
@@ -255,11 +247,9 @@ def fetch_openalex(name: str, issn: str) -> list[dict]:
     """Fetch recent works for a journal ISSN via the OpenAlex API.
 
     Covers journals whose RSS feeds are broken or blocked entirely.
-    Anonymous access is heavily rate-limited; set OPENALEX_API_KEY in the
-    environment (free key from openalex.org) for reliable daily use.
+    Anonymous access is heavily rate-limited; set OPENALEX_API_KEY in .env
+    (free key from openalex.org) for reliable daily use.
     """
-    import os
-
     since = (date.today() - timedelta(days=OPENALEX_DAYS)).isoformat()
     url = (
         "https://api.openalex.org/works"
@@ -590,8 +580,6 @@ def add_to_zotero(papers: list[dict]) -> int:
     from Crossref, then checks Unpaywall for an OA PDF and attaches it as a
     linked URL. Returns count of papers successfully added.
     """
-    import os
-
     api_key = os.environ.get("ZOTERO_API_KEY")
     if not api_key:
         print("WARNING: ZOTERO_API_KEY not set — skipping Zotero upload.")
@@ -717,7 +705,6 @@ def main():
                   f"(abstract: {has_abstract})")
         return
 
-    import os
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: ANTHROPIC_API_KEY not set. "
               "Export it before running:\n"

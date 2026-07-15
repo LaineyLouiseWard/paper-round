@@ -43,10 +43,10 @@ you are working in is the literature monitor repo.
 Run:
 
 ```bash
-pip install feedparser requests --quiet
+pip install feedparser requests pyyaml --quiet
 export ZOTERO_API_KEY=<YOUR_ZOTERO_API_KEY>
 export RESEND_API_KEY=<YOUR_RESEND_API_KEY>
-# Only if you use OPENALEX_SOURCES in screen.py:
+# Only if config.yaml lists openalex_sources:
 # export OPENALEX_API_KEY=<YOUR_OPENALEX_API_KEY>
 ```
 
