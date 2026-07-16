@@ -53,7 +53,7 @@ research_scope.md, relevance_rules.md, config.yaml, .env.example.
      which research groups or authors I always read (suggest candidates
      from the most frequent authors in my Zotero export).
    - My email address, and my Zotero library ID and collection if I
-     want papers filed automatically.
+     want papers added automatically.
 2. Draft research_scope.md and relevance_rules.md from what I gave you,
    keeping the scaffolds' structure. Fill in config.yaml.
 3. Help me create .env from .env.example. For each key, give me the
@@ -89,7 +89,7 @@ dry-run shows entries from every journal and the routine exists.
 
 - **Python does the data work**: fetching feeds (with Crossref and
   OpenAlex fallbacks for publishers that block RSS), dedup by title and
-  DOI, logging to a committed CSV, and filing into Zotero.
+  DOI, logging to a committed CSV, and adding papers to Zotero.
 - **Claude does exactly one thing**: judge each new paper against
   `research_scope.md` and `relevance_rules.md`.
 - **It can't make papers up.** Every paper in your email comes straight
