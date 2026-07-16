@@ -138,26 +138,39 @@ git push origin main
 
 ## 7. Email the digest via Resend
 
-Build the digest as clean simple HTML with inline styles and save it to
-/tmp/digest.html. Structure, in order:
-1. Opening line: 'N relevant of X screened across all feeds.'
-2. One card per paper, score-4 papers first. Each card is a div with a
-   light border, rounded corners, padding, and a margin below, containing:
-   - The title in bold, as an <a> link to the paper URL
-   - A muted meta line: journal name &middot; star rating (&#9733;&#9733;&#9733;&#9733; for
-     score 4, &#9733;&#9733;&#9733;&#9734; for score 3) &middot; topic labels
-   - The 1-2 sentence relevance summary as a short paragraph
-   - A row of small pill-style links (inline-block, rounded corners,
-     padding around 4px 12px, white text, font-size around 12px):
-     'Paper' on a coral background (#e8734a) linking to the paper URL,
-     and 'PDF' on a navy background (#2b3a55) linking to the open-access
-     PDF when the Zotero step found one. Beside the pills, the bare DOI
-     or arXiv id in small muted text when the link contains one.
-3. If more than 25 papers are relevant, include only the top 25 by score
-   and end with a muted line saying how many more are in paper_log.csv.
-4. Only add a footer if something failed (a fetch source, a Zotero add,
-   the git push, anything): name the step and quote the exact error in
-   muted text. If everything succeeded, end after the last card.
+Gmail strips <style> blocks, so every style must be inline. Build
+/tmp/digest.html by copying the templates below EXACTLY. Fill only the
+UPPERCASE parts, change nothing else.
+
+Open with (once):
+
+```html
+<div style="max-width:640px;font-family:Arial,Helvetica,sans-serif;">
+<p style="font-size:14px;color:#24272b;">N relevant of X screened across all feeds.</p>
+```
+
+Then one card per paper, score-4 papers first. AUTHORS comes from the
+paper's authors field in new_papers.json; omit that div when empty. Omit
+the PDF anchor when the Zotero step found no open-access PDF. ID is the
+bare DOI or arXiv id from the link; omit the span when there is none.
+
+```html
+<div style="border:1px solid #e3e6e9;border-radius:8px;padding:14px 16px;margin-bottom:12px;">
+<a href="PAPER_URL" style="color:#1155cc;text-decoration:none;font-weight:bold;font-size:15px;">TITLE</a>
+<div style="color:#6b7178;font-size:12px;margin-top:5px;">AUTHORS</div>
+<div style="color:#6b7178;font-size:12.5px;margin-top:4px;">JOURNAL &middot; <span style="color:#e8a13c;">STARS</span> &middot; LABELS</div>
+<p style="font-size:13px;color:#3d4249;margin:8px 0 10px;line-height:1.45;">SUMMARY</p>
+<a href="PAPER_URL" style="background:#e8734a;color:#ffffff;border-radius:6px;padding:4px 13px;font-size:12px;font-weight:bold;text-decoration:none;display:inline-block;">Paper</a>&nbsp;<a href="PDF_URL" style="background:#2b3a55;color:#ffffff;border-radius:6px;padding:4px 13px;font-size:12px;font-weight:bold;text-decoration:none;display:inline-block;">PDF</a>&nbsp;<span style="color:#9aa0a6;font-size:12px;">ID</span>
+</div>
+```
+
+Close with (once): </div>
+
+- STARS: &#9733;&#9733;&#9733;&#9733; for score 4, &#9733;&#9733;&#9733;&#9734; for score 3
+- If more than 25 papers are relevant, include the top 25 by score and
+  add one muted <p> noting how many more are in paper_log.csv
+- Only append a failure paragraph (muted style) if something failed:
+  name the step and quote the exact error
 
 Then write and run _send.py:
 
