@@ -52,6 +52,25 @@ and scope (ask for an abstract AND a Zotero CSV export — an abstract
 alone is too thin), fill the files, then walk the cloud steps one
 confirmation at a time. Prefer asking over assuming.
 
+## Ongoing tasks after setup
+
+The user lives in Claude, so the repo is also their interface. Common
+asks, and how to handle them:
+
+- **"This paper wasn't relevant"** (pasted from a digest): find what let
+  it through in relevance_rules.md and tighten it — usually a new
+  exclusion or a narrower trigger. Tell them what you changed.
+- **"It missed a paper"**: turn the miss into a new trigger, and check
+  the journal is actually in source_list.md.
+- **"Add a journal" / "follow this group"**: journal via the resolving
+  recipe above; groups go in the followed-groups trigger in
+  relevance_rules.md.
+- **"What did the round find on X?" / "give me a journal-club pick"**:
+  read paper_log.csv — it is the full history of every relevant paper
+  with scores, one-line summaries, and labels. Synthesise from it;
+  never from memory.
+- Commit and push whatever you change, so tomorrow's run uses it.
+
 ## Testing
 
 - `pip install -r requirements.txt && python screen.py --dry-run` — free,

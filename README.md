@@ -212,6 +212,17 @@ curate from the email instead.
 locally with an `ANTHROPIC_API_KEY`, scheduled however you like. The
 cloud routine is just the zero-infrastructure way.
 
+**Can it be weekly instead of daily?** Yes: set the routine's cron to
+one morning a week. Everything else works unchanged; the digest just
+covers the week.
+
+**What else can I do with it?** You have Claude, so the repo talks back.
+Open it in Claude Code and say "this paper wasn't relevant" to tighten
+the rules, "what did the round find on drought indices this month?" to
+query `paper_log.csv`, or "give me a journal-club pick from this week".
+The log is a growing, searchable history of every paper that ever
+matched your research.
+
 ## 🤝 Contributing
 
 Found a bug, or got a feed working for another publisher? Open an issue

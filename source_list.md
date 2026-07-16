@@ -42,6 +42,8 @@ that screening stays cheap and the digest stays readable.
 | Wiley (AGU, RMetS, …) | `https://<domain>/feed/{ISSN}/most-recent` | Use the ISSN, not the journal code |
 | IOP | `https://iopscience.iop.org/journal/rss/{ISSN}` | Works directly |
 | arXiv | `https://export.arxiv.org/rss/{category}` | Works directly |
+| bioRxiv / medRxiv | `https://connect.biorxiv.org/biorxiv_xml.php?subject={subject}` (medRxiv likewise) | Works directly; subject names on their sites |
+| EarthArXiv and other OSF preprint servers | RSS varies by server | Use the server's advertised feed link, or fall back to OpenAlex |
 | AMS | RSS is blocked by CloudFront bot protection | Add the journal to `crossref_fallbacks` in `config.yaml` instead (name substring → ISSN); articles then come from the free Crossref API |
 | Elsevier, Nature Portfolio, or any journal with no workable RSS | RSS broken, redirecting, or absent | Add the ISSN to `openalex_sources` in `config.yaml`; articles come from the OpenAlex API (free key from openalex.org, set in `.env`) |
 
