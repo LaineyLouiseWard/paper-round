@@ -31,7 +31,7 @@ first.
 
 ## 🚀 Start here
 
-Setup takes about ten minutes, and most of it is answering questions.
+Ten minutes of setup for an email every morning.
 
 **Fastest path (recommended):** click **[Use this template](https://github.com/LaineyLouiseWard/paper-round/generate)**,
 open your new repo in Claude Code, and paste this one prompt. *Claude
