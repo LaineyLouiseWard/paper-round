@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If Paper Round is useful in your research workflow, a citation is appreciated."
+title: "Paper Round"
+type: software
+authors:
+  - family-names: "Ward"
+    given-names: "Lainey"
+version: 1.0.0
+date-released: "2026-07-15"
+url: "https://github.com/LaineyLouiseWard/paper-round"
+repository-code: "https://github.com/LaineyLouiseWard/paper-round"
+license: MIT
+abstract: "A daily literature monitor for researchers: a scheduled Claude agent screens journal feeds against a written research scope, emails a morning digest, and files relevant papers into Zotero."
+keywords:
+  - "literature monitoring"
+  - "research automation"
+  - "zotero"
