@@ -31,6 +31,8 @@ first.
 
 ## 🚀 Start here
 
+Setup takes about ten minutes, and most of it is answering questions.
+
 **Fastest path (recommended):** click **[Use this template](https://github.com/LaineyLouiseWard/paper-round/generate)**,
 open your new repo in Claude Code, and paste this one prompt. *Claude
 does the setup for you:*
@@ -140,8 +142,12 @@ Setting it up is four steps, done once:
 
 ## 🔑 Keys
 
-All optional except Resend. They go in `.env` locally and in the routine
-prompt (or environment variables) in the cloud. **Never commit them**.
+All optional except Resend, all free, and each takes about a minute:
+
+![Where to create each key](assets/where-keys.png)
+
+They go in `.env` locally and in the routine prompt (or environment
+variables) in the cloud. **Never commit them**.
 
 | Key | Where to get it | Needed for |
 | --- | --- | --- |
