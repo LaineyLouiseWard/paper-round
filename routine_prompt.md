@@ -100,10 +100,18 @@ import sys, json
 sys.path.insert(0, '.')
 import screen
 papers = json.load(open('/tmp/scored.json'))
+fetched = json.load(open('/tmp/new_papers.json'))
+papers, dropped = screen.validate_scored(papers, fetched)
+json.dump(papers, open('/tmp/scored.json', 'w'))
+if dropped:
+    print('INTEGRITY: dropped, not in fetched data:', dropped)
 added = screen.add_to_zotero(papers)
 print(f'{added} added')
 ```
 
+The validate_scored line is the integrity gate: papers that are not in
+the fetched data are dropped before they can reach Zotero, the log, or
+the email. If anything is dropped, record it as a failure for step 7.
 If adds fail, note the exact error for the step-7 email and continue.
 
 ## 5. Update logs

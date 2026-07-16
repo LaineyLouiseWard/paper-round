@@ -692,6 +692,26 @@ def add_to_zotero(papers: list[dict]) -> int:
 
 
 
+def validate_scored(papers: list[dict], fetched: list[dict]) -> tuple:
+    """Keep only scored papers that exist verbatim in the fetched data.
+
+    The screening model writes the scored list; this gate makes inventing
+    a paper structurally impossible downstream: anything whose title or
+    link is absent from what the code actually fetched is dropped and
+    reported. Returns (validated, dropped_titles).
+    """
+    keys = set()
+    for f in fetched:
+        keys.add((normalise_title(f.get("title", "")), f.get("link", "")))
+    ok, dropped = [], []
+    for p in papers:
+        if (normalise_title(p.get("title", "")), p.get("link", "")) in keys:
+            ok.append(p)
+        else:
+            dropped.append(p.get("title", "")[:80])
+    return ok, dropped
+
+
 # ---------------------------------------------------------------------------
 # 7. Render and send the digest email (deterministic — the model never
 #    touches layout; Gmail strips <style> blocks so every style is inline)
