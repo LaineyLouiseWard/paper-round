@@ -26,6 +26,12 @@ from pathlib import Path
 
 import xml.etree.ElementTree as ET
 
+# feedparser imports the `sgmllib` module (from the sgmllib3k package), which is
+# source-only and fails to build in the ephemeral cloud-routine sandbox. We vendor
+# sgmllib.py under vendor/ and install feedparser with --no-deps, avoiding the build
+# entirely while keeping feedparser's lenient parsing of malformed feeds.
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor"))
+
 import feedparser
 import requests
 import yaml

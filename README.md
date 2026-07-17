@@ -59,8 +59,8 @@ research_scope.md, relevance_rules.md, config.yaml, .env.example.
 3. Help me create .env from .env.example. For each key, give me the
    exact link from the Keys table in README.md and wait while I create
    it.
-4. Run: pip install -r requirements.txt && python screen.py --dry-run
-   and fix anything that fails.
+4. Run: pip install -r requirements.txt && pip install --no-deps feedparser
+   && python screen.py --dry-run and fix anything that fails.
 5. Fill the placeholders in routine_prompt.md, then walk me through the
    cloud steps from the README (GitHub App access, network allowlist,
    creating the routine with /schedule) one at a time, waiting for me
@@ -78,7 +78,7 @@ dry-run shows entries from every journal and the routine exists.
 2. Edit `source_list.md` (your journals) and `config.yaml` (your settings)
 3. Draft your scope files, see [Writing your scope and rules](#%EF%B8%8F-writing-your-scope-and-rules)
 4. `cp .env.example .env` and add your keys: [resend.com](https://resend.com) (required), [zotero.org/settings/keys](https://www.zotero.org/settings/keys) and [openalex.org](https://openalex.org) (optional)
-5. `pip install -r requirements.txt && python screen.py --dry-run` (Python 3.10+)
+5. `pip install -r requirements.txt && pip install --no-deps feedparser && python screen.py --dry-run` (Python 3.10+)
 6. Set up the [cloud routine](#%EF%B8%8F-schedule-the-cloud-routine) and fire a test run
 
 </details>

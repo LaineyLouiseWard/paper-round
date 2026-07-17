@@ -43,7 +43,8 @@ you are working in is the literature monitor repo.
 Run:
 
 ```bash
-pip install feedparser requests pyyaml --quiet
+pip install requests pyyaml --quiet
+pip install --no-deps feedparser --quiet
 export ZOTERO_API_KEY=<YOUR_ZOTERO_API_KEY>
 export RESEND_API_KEY=<YOUR_RESEND_API_KEY>
 # Only if config.yaml lists openalex_sources:
