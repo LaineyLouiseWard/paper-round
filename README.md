@@ -7,8 +7,8 @@
 <p align="center"><img src="assets/email.png" alt="A morning email from Paper Round" width="620"></p>
 
 Each morning Paper Round reads every new paper in the journals you follow, keeps the ones that fit your research,
-and emails them to you. Each one comes with the sentence from its abstract that shows why it was kept, and kept papers
-can go straight into Zotero too. I built it for my own PhD; anyone can run their own copy.
+and emails them to you. Every paper comes with the sentence from its abstract that shows why it was kept, and kept papers
+can go straight into Zotero too. I built it for my own PhD; anyone can run a copy.
 
 ## How it works
 
@@ -44,7 +44,7 @@ paperround init
 
 Open your repo in an AI coding assistant (Claude Code, Codex, Cursor) and tell it what came through that shouldn't
 have, or what it missed. `paperround init` writes an `AGENTS.md` that tells the assistant how to adjust `scope.yaml`
-and test the change against your past mornings.
+and test the change against your past rounds.
 
 ## Cost
 
