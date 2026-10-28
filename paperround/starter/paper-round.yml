@@ -1,0 +1,36 @@
+name: Paper round
+
+on:
+  schedule:
+    - cron: "0 5 * * *"   # 05:00 UTC every day
+  workflow_dispatch:       # a Run button on the Actions tab
+
+concurrency: paper-round   # never two rounds at once
+
+permissions:
+  contents: write          # to save the state files back to this repo
+
+jobs:
+  round:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "paper-round @ git+https://github.com/LaineyLouiseWard/paper-round@v2.0.0"
+      - run: paperround run
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ZOTERO_API_KEY: ${{ secrets.ZOTERO_API_KEY }}
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+          ELSEVIER_API_KEY: ${{ secrets.ELSEVIER_API_KEY }}
+      - name: Save state
+        if: always()       # keep what the round did, even when it reports a problem
+        run: |
+          git config user.name "paper-round"
+          git config user.email "paper-round@users.noreply.github.com"
+          git add state paper_log.csv 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "Paper round $(date -u +%F)"
+          git push

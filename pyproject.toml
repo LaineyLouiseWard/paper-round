@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper-round"
+version = "2.0.0"
+description = "A daily email of new journal papers that match your research, judged by Jev and added to Zotero."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "requests==2.34.2",
+    "feedparser==6.0.14",
+    "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.2.0"]
+
+[project.scripts]
+paperround = "paperround.cli:main"
+
+[tool.setuptools]
+packages = ["paperround"]
+
+[tool.setuptools.package-data]
+paperround = ["starter/*"]

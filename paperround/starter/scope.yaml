@@ -1,0 +1,25 @@
+# What counts as relevant. Each strand is one yes/no question Jev answers about a paper's title and abstract.
+# A paper is kept when a strand's answer reaches its threshold and none of that strand's exclusions reaches
+# exclude_threshold. Write `yes` and `no` as plain descriptions of what each answer means: they matter more than
+# the question. Keep each question to one idea; put "but not ..." cases in exclude, as their own questions.
+
+threshold: 0.7
+exclude_threshold: 0.7
+
+strands:
+  - id: floods
+    label: Flood forecasting
+    question: Does the paper forecast or predict river floods?
+    yes: The paper builds, tests or improves forecasts or predictions of river flooding or high river flow.
+    no: Any other topic, including flood risk maps, flood damage or flood history without a forecast.
+    exclude:
+      - id: projection
+        question: Is the paper only about how floods will change under future climate scenarios decades ahead?
+        yes: The study looks only at climate projections (for example CMIP scenarios), with no forecast of coming weeks or months.
+        no: The study makes or tests forecasts, or does not use climate projections.
+
+  - id: drought
+    label: Drought monitoring
+    question: Does the paper measure, monitor or predict drought?
+    yes: The paper defines, monitors, measures or predicts drought, for example with a drought index such as SPI.
+    no: Any other topic, including papers that only mention drought in passing.
