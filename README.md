@@ -23,6 +23,9 @@ You describe your research in `scope.yaml`. [Jev](https://typesafe.ai) screens e
 code keeps the ones that pass. The reason line is copied from the abstract, so nothing in the email
 is made up.
 
+Why Jev: it answers yes/no questions with a probability instead of writing text, so the code stays in charge. It is
+also quick and cheap, about a second and a small fraction of a cent per paper.
+
 ## Setup
 
 You need a GitHub account, a Jev key ([typesafe.ai](https://typesafe.ai)) and a free Resend key
