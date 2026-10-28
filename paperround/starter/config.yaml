@@ -1,0 +1,46 @@
+# Paper Round settings. Keys never go here: they are GitHub secrets (or a local .env file).
+
+# Sent to Crossref and Unpaywall, as their free APIs ask
+contact_email: you@example.edu
+
+# Journal feeds. RSS patterns that work, by publisher:
+#   Copernicus/EGU   https://<journal>.copernicus.org/xml/rss2_0.xml
+#   Wiley (AGU...)   https://<site>/feed/<ISSN>/most-recent
+#   IOP              https://iopscience.iop.org/journal/rss/<ISSN>
+#   arXiv            https://export.arxiv.org/rss/<category>
+#   AMS              RSS is blocked to scripts: give crossref_issn and it is fetched from Crossref instead
+#   Elsevier, Nature and other journals with no working RSS: list them under openalex below
+feeds:
+  - name: Hydrology and Earth System Sciences
+    url: https://hess.copernicus.org/xml/rss2_0.xml
+  - name: Geophysical Research Letters
+    url: https://agupubs.onlinelibrary.wiley.com/feed/19448007/most-recent
+  - name: Journal of Climate
+    url: https://journals.ametsoc.org/action/showFeed?type=etoc&feed=rss&jc=jcli
+    crossref_issn: "1520-0442"
+
+# Journal name: ISSN, fetched from OpenAlex (set OPENALEX_API_KEY; anonymous use is heavily rate-limited)
+openalex: {}
+#  Journal of Hydrology: "0022-1694"
+
+# Phrases searched in the titles and abstracts of new articles in every journal (OpenAlex). Use this when your
+# field publishes across many journals; Jev then sorts the catch. Leave empty to skip.
+openalex_search: []
+#  - compound event
+#  - flash drought
+
+# arXiv search across all categories; leave empty to skip
+arxiv_search_terms: []
+#  - subseasonal prediction
+
+# Where kept papers go. Leave library_id empty to skip Zotero and use the email alone.
+zotero:
+  library_id: ""
+  library_type: group        # or user
+  collection: ""             # 8-character key from the collection's URL
+
+email:
+  from: "Paper Round <onboarding@resend.dev>"   # without your own Resend domain, mail goes only to your Resend login address
+  to: you@example.edu
+  greeting_name: there
+  send_when_empty: true      # an email every morning, even with nothing new, so silence means something broke

@@ -1,255 +1,77 @@
 <div align="center">
-<img src="assets/clawd.png" alt="Clawd delivering the paper round" width="360">
+<img src="assets/clawd.png" alt="Clawd delivering the paper round" width="320">
 <h1>Paper Round</h1>
-<p>
-<a href="https://claude.com/product/claude-code"><img src="https://img.shields.io/badge/powered_by-Claude_Code-D97757?logo=claude&logoColor=white" alt="powered by Claude Code"></a>
-<a href="https://github.com/LaineyLouiseWard/paper-round"><img src="https://img.shields.io/badge/status-active-brightgreen" alt="status"></a>
-<a href="https://github.com/LaineyLouiseWard/paper-round/stargazers"><img src="https://img.shields.io/github/stars/LaineyLouiseWard/paper-round" alt="stars"></a>
-<a href="https://github.com/LaineyLouiseWard/paper-round/issues"><img src="https://img.shields.io/github/issues/LaineyLouiseWard/paper-round" alt="issues"></a>
-<a href="LICENSE"><img src="https://img.shields.io/github/license/LaineyLouiseWard/paper-round" alt="license"></a>
-</p>
-<p><em>Your daily paper round, except it delivers journal papers straight to your inbox.</em></p>
+<p><em>One email each morning with the new journal papers that match your research.</em></p>
 </div>
 
-Journal alerts bury the two papers you need under two hundred you don't.
-Paper Round checks every new paper in the journals you follow and sends
-you **one email each morning** with the ones that match your research.
-Each paper arrives with a one-line reason it was picked, and lands in
-your **Zotero** library with full metadata and an open-access PDF link.
+Journal alerts bury the two papers you need under two hundred you don't. Paper Round reads every new paper in the
+journals and searches you choose, keeps the ones that fit your research, and emails them to you each morning, each
+with a sentence from its abstract showing why it was kept. Kept papers can also go straight into a Zotero collection
+with full metadata and an open-access PDF link.
 
-**No server. No GitHub Actions. No LLM API key.** A claude.ai Pro/Max
-subscription is the engine. Adapted from the workflow I built for my own
-PhD ([Lainey Ward](https://github.com/LaineyLouiseWard)).
+Built for my own PhD on subseasonal forecasting and compound climate extremes ([Lainey Ward](https://github.com/LaineyLouiseWard)),
+written so anyone can run their own copy.
 
-## 📬 The morning email
+## How it works
 
-![Example daily digest](assets/email.png)
+Every morning a GitHub Actions job in your own private repo runs `paperround run`:
 
-Titles link to the paper on the journal's site, the PDF button appears
-whenever an open-access copy exists, and the strongest matches come
-first.
+1. **Fetch** new papers from journal RSS feeds, Crossref (for journals that block feed readers), OpenAlex (by journal or
+   by keyword across all journals) and arXiv.
+2. **Drop** papers seen before, by DOI, arXiv id or title.
+3. **Find abstracts** that feeds leave out, by DOI. A paper still without one waits up to a week for it.
+4. **Judge** each paper with [Jev](https://typesafe.ai), which answers yes/no questions about text with a probability.
+   You describe your research as a few strands in `scope.yaml`; each strand is one question, with optional exclusion
+   questions. Code keeps a paper when a strand passes its threshold and none of its exclusions do.
+5. **Quote** the abstract sentence that best shows the strand. The model never writes text, so nothing in the email can
+   be made up.
+6. **Add** kept papers to Zotero and **email** the digest through Resend.
+7. **Save** state back to the repo as plain text: what has been seen, every paper's probabilities, and the log of kept
+   papers.
 
-## 🚀 Start here
+## Setup
 
-Ten minutes of setup for an email every morning.
+You need a GitHub account and keys for Jev ([typesafe.ai](https://typesafe.ai)) and Resend ([resend.com](https://resend.com),
+free tier). Zotero and OpenAlex keys are optional.
 
-**Fastest path (recommended):** click **[Use this template](https://github.com/LaineyLouiseWard/paper-round/generate)**,
-open your new repo in Claude Code, and paste this one prompt. *Claude
-does the setup for you:*
-
-```text
-You are setting up Paper Round (this repo) for me. Read CLAUDE.md and
-README.md first, then the files you will edit: source_list.md,
-research_scope.md, relevance_rules.md, config.yaml, .env.example.
-
-1. Interview me, one topic at a time:
-   - Which journals I follow. Resolve each to a working source yourself
-     using the "Resolving a journal" recipe in CLAUDE.md; never ask me
-     for ISSNs or feed URLs.
-   - My research. Offer me the choice: paste an abstract, point you at
-     a thesis chapter, proposal, or paper in this folder for you to
-     read, or both. Also ask for a Zotero library export dropped in
-     this folder (File > Export Library > CSV) if I use Zotero, and
-     which research groups or authors I always read (suggest candidates
-     from the most frequent authors in my Zotero export).
-   - My email address, and my Zotero library ID and collection if I
-     want papers added automatically.
-2. Draft research_scope.md and relevance_rules.md from what I gave you,
-   keeping the scaffolds' structure. Fill in config.yaml.
-3. Help me create .env from .env.example. For each key, give me the
-   exact link from the Keys table in README.md and wait while I create
-   it.
-4. Run: pip install -r requirements.txt && pip install --no-deps feedparser
-   && python screen.py --dry-run and fix anything that fails.
-5. Fill the placeholders in routine_prompt.md, then walk me through the
-   cloud steps from the README (GitHub App access, network allowlist,
-   creating the routine with /schedule) one at a time, waiting for me
-   to confirm each before moving on.
-
-Rules: edit config.yaml and the markdown files, never screen.py. Keep
-the source_list.md feed-entry format exactly. You are done when the
-dry-run shows entries from every journal and the routine exists.
+```bash
+pip install "paper-round @ git+https://github.com/LaineyLouiseWard/paper-round@v2.0.0"
+mkdir my-paper-round && cd my-paper-round && git init
+paperround init        # writes config.yaml, scope.yaml and .github/workflows/paper-round.yml
 ```
 
-<details>
-<summary><b>Prefer to set up by hand?</b> The same six steps, manually</summary>
+1. Edit `config.yaml` (journals, email, Zotero) and `scope.yaml` (your strands). The starter files explain each setting.
+2. Copy `.env.example` from this repo to `.env`, add your keys, and try it locally: `paperround run --dry-run` lists
+   what would be judged (no keys needed); `paperround run --no-zotero` does a full round.
+3. Push to a **private** GitHub repo and add the keys as repository secrets (Settings → Secrets and variables →
+   Actions): `TYPESAFE_API_KEY`, `RESEND_API_KEY`, and optionally `ZOTERO_API_KEY`, `OPENALEX_API_KEY`,
+   `ELSEVIER_API_KEY`.
+4. Run it once from the Actions tab. After that it runs every morning at 05:00 UTC.
 
-1. Click **Use this template** to create your own repo (private is fine)
-2. Edit `source_list.md` (your journals) and `config.yaml` (your settings)
-3. Draft your scope files, see [Writing your scope and rules](#%EF%B8%8F-writing-your-scope-and-rules)
-4. `cp .env.example .env` and add your keys: [resend.com](https://resend.com) (required), [zotero.org/settings/keys](https://www.zotero.org/settings/keys) and [openalex.org](https://openalex.org) (optional)
-5. `pip install -r requirements.txt && pip install --no-deps feedparser && python screen.py --dry-run` (Python 3.10+)
-6. Set up the [cloud routine](#%EF%B8%8F-schedule-the-cloud-routine) and fire a test run
+## Cost and privacy
 
-</details>
+- **Jev** costs about $0.04 per million input tokens. A day of around 70 new papers uses roughly 300,000, so about a
+  cent a day.
+- **GitHub Actions** is free within the monthly minutes of a private repo; a round takes a minute or two.
+- Your `scope.yaml` and log stay in your private repo. Each round sends your strand questions and the papers' titles
+  and abstracts to TypeSafe to be judged; TypeSafe's legal terms commit to not training on user data.
 
-## ⚙️ How it works
+## Tuning
 
-![How Paper Round works](assets/pipeline.png)
+- **"This wasn't relevant":** sharpen that strand's `yes`/`no` descriptions, add an exclusion question, or raise its
+  threshold. One idea per question works best.
+- **"It missed a paper":** check the journal is fetched (`--dry-run`), widen the strand, or add a strand.
+- Every paper's probabilities are in `state/judgements.jsonl`, so a new threshold can be tried against past rounds
+  without asking Jev again. `paperround judge papers.jsonl` scores a file of papers you already know about.
 
-- **Python does the data work**: fetching feeds (with Crossref and
-  OpenAlex fallbacks for publishers that block RSS), dedup by title and
-  DOI, logging to a committed CSV, and adding papers to Zotero.
-- **Claude does exactly one thing**: judge each new paper against
-  `research_scope.md` and `relevance_rules.md`.
-- **It can't make papers up.** Every paper in your email comes straight
-  from what the feeds returned that morning, and if a source is down the
-  email says so plainly. (The rules enforcing this were earned the hard
-  way: an early run whose feeds broke invented seven convincing papers
-  before they existed.)
+## Structure
 
-## ✍️ Writing your scope and rules
+| Path | Contents |
+|---|---|
+| `paperround/` | The package: `sources.py` fetching, `judge.py` the keep rule, `run.py` one round, `digest.py` the email |
+| `paperround/starter/` | The files `paperround init` writes |
+| `tests/` | `pytest` suite, run on every push |
 
-`research_scope.md` and `relevance_rules.md` *are* the screening prompt.
-Don't write them from scratch. Give Claude Code your research taste:
+## Licence
 
-- **Paste your abstract** (thesis, proposal, or a recent paper), *and*
-- **Export your Zotero library** into the folder (File → Export Library →
-  CSV). The library shows your taste, the abstract shows where you're
-  heading; together they draft well. Claude can also suggest
-  `source_list.md` entries from the journals that dominate your library.
-
-Then treat the **first two weeks as calibration**: every false positive
-becomes an exclusion, every missed paper becomes a trigger. The exclusion
-list does most of the filtering work, so grow it freely.
-
-## ☁️ Schedule the cloud routine
-
-Each morning a Claude Code cloud agent opens this repo, runs the
-pipeline, and emails you. You also get a notification saying how the run
-went. It uses a few minutes of your plan's cheapest model per day.
-
-Setting it up is four steps, done once:
-
-1. **Grant GitHub access.** The cloud agent clones via the Claude GitHub
-   App, not your local credentials. Configure it at
-   [github.com/settings/installations](https://github.com/settings/installations)
-   → **Claude** → grant access to this repo.
-2. **Open network access.** Cloud environments block unknown domains by
-   default. In [claude.ai/code](https://claude.ai/code), open your
-   environment's settings → Network access → **Custom**, keep the default
-   package list, and add your feed domains plus `api.crossref.org`,
-   `api.unpaywall.org`, `api.zotero.org`, `api.resend.com`,
-   `api.openalex.org`, `export.arxiv.org`, `arxiv.org`, `doi.org`.
-3. **Create the routine.** Fill in the placeholders in
-   `routine_prompt.md`, then ask Claude Code (`/schedule`, *"run this
-   prompt daily at 6am against my repo"*) or use
-   [claude.ai/code/routines](https://claude.ai/code/routines). Cheapest
-   model tier; cron times are UTC.
-4. **Run it once manually** and check the three places papers land: the
-   email, your Zotero inbox, and the commit. The notification tells you
-   how the run went.
-
-## 🔑 Keys
-
-All optional except Resend, all free, and each takes about a minute:
-
-![Where to create each key](assets/where-keys.png)
-
-They go in `.env` locally and in the routine prompt (or environment
-variables) in the cloud. **Never commit them**.
-
-| Key | Where to get it | Needed for |
-| --- | --- | --- |
-| `RESEND_API_KEY` | free account at [resend.com](https://resend.com) | **the emailed digest.** Without a verified domain, send from `onboarding@resend.dev` (delivers only to your own Resend account email) |
-| `ZOTERO_API_KEY` | free at [zotero.org/settings/keys](https://www.zotero.org/settings/keys) (tick write access) | adding papers to your Zotero library. *Leave empty to skip Zotero and curate from the email* |
-| `OPENALEX_API_KEY` | free from [openalex.org](https://openalex.org) | only if `config.yaml` lists `openalex_sources` (journals with no workable RSS) |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) (pay per use) | only for running `screen.py` on your own computer. *The daily cloud run already includes Claude, so it never needs this* |
-
-## 📁 Project structure
-
-Everything sits at the repo root: each file is either the pipeline or a
-file you edit.
-
-| File | Purpose |
-| ---- | ------- |
-| `screen.py` | Pipeline: fetch, dedup, screen, log, Zotero. **No editing needed** |
-| `config.yaml` | All your settings: email, Zotero library, sources, model |
-| `.env.example` | Template for `.env`, where keys live (gitignored) |
-| `source_list.md` | Your feeds, with working URL patterns per publisher |
-| `research_scope.md` | Your research context, half of the screening prompt |
-| `relevance_rules.md` | The 0 to 4 scoring rules, the other half |
-| `routine_prompt.md` | The cloud routine's task prompt, with placeholders |
-| `CLAUDE.md` | Orients Claude Code sessions, so the setup prompt works first time |
-| `paper_log.csv` | Papers scoring ≥ 3 (auto-generated, committed daily) |
-| `seen_papers.txt` | Titles and DOIs already screened (auto-generated) |
-
-## 🛠️ Troubleshooting
-
-Done the four setup steps? Then you shouldn't ever see these. If one
-turns up anyway, the fix is a click away:
-
-<details>
-<summary><b>Expand the failure table</b></summary>
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| Routine disabled itself, "init failed" | Claude GitHub App can't clone the (private) repo | Grant repo access at [github.com/settings/installations](https://github.com/settings/installations) |
-| Run reports network/proxy errors | Environment allowlist blocks feeds/APIs | Environment settings → Network access → Custom → add the domains from step 2 |
-| Digest never arrives | Resend missing from the allowlist, unverified from-address, or the free tier's own-address restriction | The push notification states the outcome verbatim; check `api.resend.com` is allowlisted and the from/to pairing matches your Resend tier |
-| Expecting email from a Gmail connector | Google's Gmail connector has no send tool | It can only create drafts; that's why this uses Resend |
-| Digest lists papers that don't exist | Fetch failed and the model improvised | Keep the integrity rules block; spot-check DOIs |
-| First run finds hundreds of papers | Full feed contents hit an empty `seen_papers.txt` | Expected one-off backlog flush; daily volume after that is a handful |
-
-</details>
-
-## ❓ FAQ
-
-**What does it cost to run?** It draws on your Claude Pro/Max plan's
-included usage: a few minutes of the cheapest model per day. *No separate
-bill, no per-token API charges.*
-
-**Will it hallucinate papers?** No: every paper in the email must appear
-word-for-word in what the feeds returned that morning, and if a source
-breaks the email says which one. Spot-check a DOI occasionally anyway,
-trust, but verify.
-
-**Does it get me past paywalls?** No. Cards link the paper's page, plus
-an open-access PDF whenever [Unpaywall](https://unpaywall.org/) knows one.
-
-**Do I need to install any MCP servers, Zotero plugins, or extensions?**
-No. The pipeline talks to Zotero's web API with your key; nothing gets
-installed in Zotero, your browser, or Claude.
-
-**Can I use it without Zotero?** Yes: leave `ZOTERO_API_KEY` empty and
-curate from the email instead.
-
-**Can I run it without the cloud routine?** Yes: `python screen.py`
-locally with an `ANTHROPIC_API_KEY`, scheduled however you like. The
-cloud routine is just the zero-infrastructure way.
-
-**Can it be weekly instead of daily?** Yes: set the routine's cron to
-one morning a week. Everything else works unchanged; the digest just
-covers the week.
-
-**What else can I do with it?** You have Claude, so the repo talks back.
-Open it in Claude Code and say "this paper wasn't relevant" to tighten
-the rules, "what did the round find on drought indices this month?" to
-query `paper_log.csv`, or "give me a journal-club pick from this week".
-The log is a growing, searchable history of every paper that ever
-matched your research.
-
-## 🤝 Contributing
-
-Found a bug, or got a feed working for another publisher? Open an issue
-or a PR, all welcome.
-
-## ❤️ Acknowledgements
-
-Ideas borrowed from tools that solve this for arXiv-centric workflows:
-
-- [zotero-arxiv-daily](https://github.com/TideDra/zotero-arxiv-daily)
-- [ArxivDigest](https://github.com/AutoLLM/ArxivDigest)
-- [paperzorro](https://github.com/Rafael-Silva-Oliveira/paperzorro)
-
-Running on freely provided scholarly infrastructure:
-
-- [Crossref](https://www.crossref.org/): bibliographic metadata
-- [OpenAlex](https://openalex.org/): open catalogue of research
-- [Unpaywall](https://unpaywall.org/): open-access PDF discovery
-- [Zotero](https://www.zotero.org/): reference management
-- [arXiv](https://arxiv.org/): preprints
-
-## 📃 Licence
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE).
