@@ -1,7 +1,7 @@
 # What counts as relevant. Each strand is one yes/no question Jev answers about a paper's title and abstract.
 # A paper is kept when a strand's answer reaches its threshold and none of that strand's exclusions reaches
-# exclude_threshold. Write `yes` and `no` as plain descriptions of what each answer means: they matter more than
-# the question. Keep each question to one idea; put "but not ..." cases in exclude, as their own questions.
+# exclude_threshold. Write `yes` and `no` as plain descriptions of what each answer means. Keep each question to one
+# idea: a second idea is a second strand, and a "but not ..." case is an exclusion with its own question.
 
 threshold: 0.7
 exclude_threshold: 0.7
