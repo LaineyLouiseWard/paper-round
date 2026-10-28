@@ -14,6 +14,7 @@ from .run import require, run
 
 STARTER = Path(__file__).parent / "starter"
 STARTER_FILES = {"config.yaml": "config.yaml", "scope.yaml": "scope.yaml", "gitignore": ".gitignore",
+                 "AGENTS.md": "AGENTS.md", "CLAUDE.md": "CLAUDE.md",
                  "paper-round.yml": ".github/workflows/paper-round.yml"}
 
 
@@ -49,7 +50,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="paperround", description="A daily email of new papers that match your research.")
     parser.add_argument("--dir", type=Path, default=Path("."), help="folder holding config.yaml and scope.yaml")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("init", help="write starter config.yaml, scope.yaml and the daily GitHub workflow")
+    sub.add_parser("init", help="write starter settings, tuning notes for AI assistants, and the daily GitHub workflow")
     r = sub.add_parser("run", help="fetch, judge, add to Zotero, email, save state")
     r.add_argument("--dry-run", action="store_true", help="fetch and list the new papers only (no keys needed)")
     r.add_argument("--no-zotero", action="store_true")

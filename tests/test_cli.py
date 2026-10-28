@@ -6,6 +6,7 @@ def test_init_writes_starter_files_and_keeps_existing(tmp_path, capsys):
     assert main(["--dir", str(tmp_path), "init"]) == 0
     assert (tmp_path / "scope.yaml").read_text() == "mine"
     assert (tmp_path / "config.yaml").exists() and (tmp_path / ".gitignore").exists()
+    assert (tmp_path / "AGENTS.md").exists() and (tmp_path / "CLAUDE.md").read_text() == "@AGENTS.md\n"
     assert (tmp_path / ".github" / "workflows" / "paper-round.yml").exists()
     assert "kept your scope.yaml" in capsys.readouterr().out
 

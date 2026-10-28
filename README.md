@@ -29,7 +29,7 @@ You need a GitHub account, a Jev key ([typesafe.ai](https://typesafe.ai)) and a 
 ([resend.com](https://resend.com)) for the email.
 
 ```bash
-pip install "paper-round @ git+https://github.com/LaineyLouiseWard/paper-round@v2.0.0"
+pip install "paper-round @ git+https://github.com/LaineyLouiseWard/paper-round@v2.0.1"
 mkdir my-paper-round && cd my-paper-round && git init
 paperround init
 ```
@@ -39,6 +39,12 @@ paperround init
 3. Push to a private GitHub repo and add your keys under Settings → Secrets and variables → Actions:
    `TYPESAFE_API_KEY`, `RESEND_API_KEY`, and optionally `ZOTERO_API_KEY`.
 4. Press Run on the Actions tab. From then on it runs every morning.
+
+## Tuning
+
+Open your repo in an AI coding assistant (Claude Code, Codex, Cursor) and tell it what came through that shouldn't
+have, or what it missed. `paperround init` writes an `AGENTS.md` that tells the assistant how to adjust `scope.yaml`
+and test the change against your past mornings.
 
 ## Cost
 

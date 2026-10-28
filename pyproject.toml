@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "paper-round"
-version = "2.0.0"
+version = "2.0.1"
 description = "A daily email of new journal papers that match your research, judged by Jev and added to Zotero."
 readme = "README.md"
 license = "MIT"
