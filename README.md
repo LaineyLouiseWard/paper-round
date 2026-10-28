@@ -24,7 +24,7 @@ code keeps the ones that pass. The reason line is copied from the abstract, so n
 is made up.
 
 Why Jev: it answers yes/no questions with a probability instead of writing text, so the code stays in charge. It is
-also quick and cheap, about a second and a small fraction of a cent per paper.
+also quick and cheap: about a second per paper, and a few cents a month.
 
 ## Setup
 
@@ -51,7 +51,8 @@ and test the change against your past rounds.
 
 ## Cost
 
-Jev costs about a cent a day for 70 papers. A round takes a minute or two, well inside GitHub's free Actions minutes.
+Screening about 70 papers a day with Jev costs a few cents a month. A round takes two or three minutes, so a month of
+mornings uses under 100 of the 2,000 free Actions minutes a private repo gets.
 
 ## Licence
 
