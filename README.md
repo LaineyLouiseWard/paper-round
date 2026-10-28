@@ -15,12 +15,12 @@ can go straight into Zotero too. I built it for my own PhD; anyone can run their
 ```mermaid
 flowchart LR
   A[Journal feeds<br/>and searches] --> B[New papers<br/>only]
-  B --> C[Jev answers<br/>your questions]
+  B --> C[Jev screens<br/>for relevance]
   C --> D[Email<br/>and Zotero]
 ```
 
-You describe your research in `scope.yaml` as a few yes/no questions. [Jev](https://typesafe.ai) answers them for
-each paper, and the code keeps the ones that pass. The reason line is copied from the abstract, so nothing in the email
+You describe your research in `scope.yaml`. [Jev](https://typesafe.ai) screens each new paper against it, and the
+code keeps the ones that pass. The reason line is copied from the abstract, so nothing in the email
 is made up.
 
 ## Setup
