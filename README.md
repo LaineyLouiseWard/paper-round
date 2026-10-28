@@ -8,7 +8,7 @@
 
 Each morning Paper Round reads every new paper in the journals you follow, keeps the ones that fit your research,
 and emails them to you. Each one comes with the sentence from its abstract that shows why it was kept, and kept papers
-can go straight into Zotero too.
+can go straight into Zotero too. I built it for my own PhD; anyone can run their own copy.
 
 ## How it works
 
