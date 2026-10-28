@@ -6,7 +6,7 @@ kept papers not yet added or emailed are picked up by the next round.
 
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from . import digest, sources, zotero
@@ -14,6 +14,9 @@ from .config import Scope, Settings
 from .judge import Jev, judge
 from .papers import drop_seen
 from .state import State
+
+WAIT_DAYS = 7  # how long a paper without an abstract waits for one before it is judged on its title
+FORGET_DAYS = 30  # a held paper that has left every feed by then is dropped from the waiting list
 
 
 def require(env, name: str) -> str:
@@ -23,7 +26,8 @@ def require(env, name: str) -> str:
 
 
 def run(root: Path, cfg: Settings, scope: Scope, *, dry_run=False, use_zotero=True, use_email=True, today=None,
-        env=os.environ, fetch=sources.fetch_all, fill_abstracts=sources.fill_elsevier_abstracts, jev=None, add_to_zotero=zotero.add, send_email=digest.send) -> int:
+        env=os.environ, fetch=sources.fetch_all, fill_abstracts=sources.fill_abstracts, jev=None,
+        add_to_zotero=zotero.add, send_email=digest.send) -> int:
     """Returns 0, or 1 when the round needs attention (no email sent, or nothing could be fetched or judged)."""
     today = today or date.today().isoformat()
     state = State(root)
@@ -36,11 +40,22 @@ def run(root: Path, cfg: Settings, scope: Scope, *, dry_run=False, use_zotero=Tr
     fetch_failed = bool(failures) and not papers
     new = drop_seen(papers, state.seen())
     print(f"{len(papers)} fetched, {len(new)} new")
-    if env.get("ELSEVIER_API_KEY"):
-        print(f"Elsevier abstracts filled: {fill_abstracts(new, env['ELSEVIER_API_KEY'])}")
+    print(f"Abstracts found by DOI: {fill_abstracts(cfg, new, env.get('OPENALEX_API_KEY'), env.get('ELSEVIER_API_KEY'))}")
+    waiting = state.waiting()
+    cutoff = (date.fromisoformat(today) - timedelta(days=WAIT_DAYS)).isoformat()
+    ready, held = [], []
+    for p in new:
+        first = waiting.get(p.key())
+        if p.has_abstract() or not p.doi or (first and first <= cutoff):
+            ready.append(p)
+        else:
+            held.append(p)
+            waiting.setdefault(p.key(), today)
+    if held:
+        print(f"Waiting for an abstract: {len(held)}")
     if dry_run:
         for p in new:
-            print(f"  [{p.source}] {p.title}{'' if p.abstract else '  (no abstract)'}")
+            print(f"  [{p.source}] {p.title}{'' if p.has_abstract() else '  (no abstract)'}")
         return 0
 
     def attempt(paper):
@@ -50,10 +65,10 @@ def run(root: Path, cfg: Settings, scope: Scope, *, dry_run=False, use_zotero=Tr
             return e
 
     with ThreadPoolExecutor(8) as pool:
-        results = list(pool.map(attempt, new))
+        results = list(pool.map(attempt, ready))
 
     rows, judged, records, errors = state.read_log(), [], [], []
-    for p, res in zip(new, results):
+    for p, res in zip(ready, results):
         if isinstance(res, Exception):
             errors.append(res)
             continue
@@ -93,6 +108,8 @@ def run(root: Path, cfg: Settings, scope: Scope, *, dry_run=False, use_zotero=Tr
     state.write_log(rows)
     state.add_seen(judged)
     state.add_judgements(records)
+    done, forget = {p.key() for p in judged}, (date.fromisoformat(today) - timedelta(days=FORGET_DAYS)).isoformat()
+    state.write_waiting({k: d for k, d in waiting.items() if k not in done and d > forget})
     for f in failures:
         print(f"PROBLEM: {f}")
-    return 1 if (not email_sent or fetch_failed or (new and not judged)) else 0
+    return 1 if (not email_sent or fetch_failed or (ready and not judged)) else 0

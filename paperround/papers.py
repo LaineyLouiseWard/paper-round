@@ -26,6 +26,9 @@ def arxiv_id(link: str) -> str | None:
     return m.group(1) if m else None
 
 
+MIN_ABSTRACT_WORDS = 25
+
+
 @dataclass
 class Paper:
     title: str
@@ -34,6 +37,18 @@ class Paper:
     abstract: str = ""
     authors: str = ""
     doi: str | None = None
+
+    def has_abstract(self) -> bool:
+        """Feeds sometimes put the journal name or a citation where the abstract belongs."""
+        return len(self.abstract.split()) >= MIN_ABSTRACT_WORDS
+
+    def key(self) -> str:
+        """One stable id: the DOI, else the arXiv id, else the title."""
+        if self.doi:
+            return f"doi:{self.doi}"
+        if aid := arxiv_id(self.link):
+            return f"arxiv:{aid}"
+        return normalise_title(self.title)
 
     def keys(self) -> set[str]:
         """Every id this paper can be recognised by: title, DOI, arXiv id."""

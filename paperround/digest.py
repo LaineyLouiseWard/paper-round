@@ -23,6 +23,9 @@ def _card(cfg: Settings, scope: Scope, row: dict) -> str:
     if row.get("evidence"):
         out.append(f'<p style="font-size:13px;color:#3d4249;margin:8px 0 10px;line-height:1.45;font-style:italic;">'
                    f'&ldquo;{escape(row["evidence"])}&rdquo;</p>')
+    else:
+        out.append('<p style="font-size:12.5px;color:#7a8087;margin:8px 0 10px;">Judged on the title: no abstract '
+                   'was available after a week.</p>')
     buttons = (f'<a href="{link}" style="background:#e8734a;color:#ffffff;border-radius:6px;padding:4px 13px;'
                f'font-size:12px;font-weight:bold;text-decoration:none;display:inline-block;">Paper</a>')
     doi = row.get("doi")

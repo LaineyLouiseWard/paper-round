@@ -11,7 +11,8 @@ ENV = {"TYPESAFE_API_KEY": "t", "RESEND_API_KEY": "r", "ZOTERO_API_KEY": "z"}
 FLOOD = Paper("Flood forecasts for Ireland", "https://doi.org/10.1/flood", "Journal A", ABSTRACT, "A. Author",
               doi="10.1/flood")
 EBIKE = Paper("Class 3 e-bikes in California", "https://x.org/ebike", "Journal A", "We model e-bike trips in cities "
-              "across California and their effect on driving.")
+              "across California and their effect on how far people drive, using travel surveys, trip diaries and a "
+              "simple model of mode choice.")
 
 
 class Recorder:
@@ -45,7 +46,7 @@ def go(root, cfg, scope, papers, jev=None, send=None, zot=None, failures=()):
     send = send or Recorder()
     zot = zot or (lambda cfg, key, row, tags: "added:K1")
     code = run(root, cfg, scope, env=ENV, today="2026-10-28", fetch=lambda c, k: (list(papers), list(failures)),
-               jev=jev or TitleJev({"floods": 0.92}), add_to_zotero=zot, send_email=send)
+               fill_abstracts=lambda *a: 0, jev=jev or TitleJev({"floods": 0.92}), add_to_zotero=zot, send_email=send)
     return code, send
 
 
@@ -101,7 +102,7 @@ def test_all_sources_failing_needs_attention(root, cfg, scope):
 
 
 def test_dry_run_needs_no_keys_and_writes_nothing(root, cfg, scope):
-    assert run(root, cfg, scope, dry_run=True, env={}, fetch=lambda c, k: ([FLOOD], [])) == 0
+    assert run(root, cfg, scope, dry_run=True, env={}, fetch=lambda c, k: ([FLOOD], []), fill_abstracts=lambda *a: 0) == 0
     assert not (root / "paper_log.csv").exists() and not (root / "state").exists()
 
 
@@ -116,20 +117,60 @@ def test_digest_quotes_evidence_and_escapes(cfg, scope, monkeypatch):
     assert subject(cfg, 2, ["x"]).endswith("2 papers in today's round (with problems)")
 
 
-def test_elsevier_abstracts_filled_for_new_papers_only_when_key_set(root, cfg, scope):
-    bare = Paper("Flood forecasts without abstract", "https://doi.org/10.1016/j.x", "J Hydrol", doi="10.1016/j.x")
-    calls = []
+def no_lookup(cfg, papers, *keys):
+    return 0
 
-    def fill(papers, key):
-        calls.append((key, [p.title for p in papers]))
+
+def go_on(root, cfg, scope, day, papers, fill=no_lookup):
+    send = Recorder()
+    run(root, cfg, scope, env=ENV, today=day, fetch=lambda c, k: (list(papers), []), fill_abstracts=fill,
+        jev=TitleJev({"floods": 0.92}), add_to_zotero=lambda *a: "added:K", send_email=send)
+    return send
+
+
+BARE = Paper("Flood forecasts, abstract still to come", "https://doi.org/10.1002/qj.1", "QJ", "Quarterly Journal "
+             "of the Royal Meteorological Society, EarlyView.", doi="10.1002/qj.1")
+
+
+def test_paper_without_abstract_waits_then_is_judged_on_title(root, cfg, scope):
+    go_on(root, cfg, scope, "2026-10-01", [BARE])
+    assert State(root).waiting() == {"doi:10.1002/qj.1": "2026-10-01"} and State(root).read_log() == []
+    assert "doi:10.1002/qj.1" not in State(root).seen()
+    go_on(root, cfg, scope, "2026-10-07", [BARE])
+    assert State(root).read_log() == []
+    go_on(root, cfg, scope, "2026-10-08", [BARE])
+    rows = State(root).read_log()
+    assert [r["title"] for r in rows] == [BARE.title] and rows[0]["evidence"] == ""
+    assert State(root).waiting() == {} and "doi:10.1002/qj.1" in State(root).seen()
+
+
+def test_abstract_found_later_ends_the_wait(root, cfg, scope):
+    go_on(root, cfg, scope, "2026-10-01", [BARE])
+
+    def found(cfg, papers, *keys):
         for p in papers:
             p.abstract = ABSTRACT
         return len(papers)
 
-    run(root, cfg, scope, env={**ENV, "ELSEVIER_API_KEY": "e"}, today="2026-10-28", fetch=lambda c, k: ([bare], []),
-        fill_abstracts=fill, jev=TitleJev({"floods": 0.92}), add_to_zotero=lambda *a: "added:K",
-        send_email=Recorder())
-    assert calls == [("e", [bare.title])] and State(root).read_log()[0]["evidence"] in ABSTRACT
-    run(root, cfg, scope, env=ENV, today="2026-10-28", fetch=lambda c, k: ([], []), fill_abstracts=fill,
-        jev=TitleJev({}), add_to_zotero=lambda *a: "x", send_email=Recorder())
-    assert len(calls) == 1
+    go_on(root, cfg, scope, "2026-10-02", [Paper(**{**BARE.__dict__})], fill=found)
+    assert State(root).read_log()[0]["evidence"] in ABSTRACT and State(root).waiting() == {}
+
+
+def test_paper_without_doi_is_judged_at_once(root, cfg, scope):
+    go_on(root, cfg, scope, "2026-10-01", [Paper("Flood note", "https://x.org/n", "J", "short")])
+    assert len(State(root).read_log()) == 1 and State(root).waiting() == {}
+
+
+def test_stale_waiting_entries_are_forgotten(root, cfg, scope):
+    State(root).write_waiting({"doi:10.1/gone": "2026-08-01"})
+    go_on(root, cfg, scope, "2026-10-01", [])
+    assert State(root).waiting() == {}
+
+
+def test_copernicus_citation_header_is_removed():
+    from paperround.sources import clean_abstract
+    text = ("Multiscalar controls of drought impacts in Spain A. Author and B. Author Nat. Hazards Earth Syst. Sci., "
+            "26, 4977–4996, https://doi.org/10.5194/nhess-26-4977-2026, 2026 This study synthesizes drought impacts.")
+    assert clean_abstract(text) == "This study synthesizes drought impacts."
+    assert clean_abstract("No header here, see https://doi.org/10.1/x for data.") == \
+        "No header here, see https://doi.org/10.1/x for data."

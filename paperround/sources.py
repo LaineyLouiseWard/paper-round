@@ -19,6 +19,14 @@ def strip_html(text: str) -> str:
     return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", text or ""))).strip()
 
 
+CITATION_HEADER = re.compile(r"^.*?https?://doi\.org/\S+,\s*\d{4}\s*")
+
+
+def clean_abstract(text: str) -> str:
+    """Drop a leading title, author and citation block (Copernicus feeds put one before the abstract)."""
+    return CITATION_HEADER.sub("", text, count=1).strip()
+
+
 def author_string(names: list[str]) -> str:
     names = [n for n in names if n]
     return ", ".join(names[:4]) + (" et al." if len(names) > 4 else "")
@@ -35,7 +43,7 @@ def fetch_rss(name: str, url: str) -> list[Paper]:
         title = strip_html(e.get("title") or "")
         if not title or title.lower() in SKIP_TITLES:
             continue
-        abstract = strip_html(e.get("summary") or e.get("description") or "")
+        abstract = clean_abstract(strip_html(e.get("summary") or e.get("description") or ""))
         if not abstract and e.get("content"):
             abstract = strip_html(e.content[0].get("value", ""))
         link = e.get("link", "")
@@ -70,6 +78,14 @@ def fetch_crossref(cfg: Settings, name: str, issn: str) -> list[Paper]:
     return papers
 
 
+def _openalex_text(inverted: dict | None) -> str:
+    words = {}
+    for word, positions in (inverted or {}).items():
+        for i in positions:
+            words[i] = word
+    return " ".join(words[i] for i in sorted(words))
+
+
 def _openalex(cfg: Settings, api_key: str | None, source: str | None, filters: str) -> list[Paper]:
     """Recent articles from OpenAlex matching the filters; source=None labels each paper with its own journal."""
     since = (date.today() - timedelta(days=cfg.openalex_days)).isoformat()
@@ -88,14 +104,10 @@ def _openalex(cfg: Settings, api_key: str | None, source: str | None, filters: s
         title = strip_html(item.get("title") or "")
         if not title:
             continue
-        words = {}
-        for word, positions in (item.get("abstract_inverted_index") or {}).items():
-            for i in positions:
-                words[i] = word
         journal = ((item.get("primary_location") or {}).get("source") or {}).get("display_name") or "OpenAlex"
         papers.append(Paper(
             title=title, link=item.get("doi") or item.get("id", ""), source=source or journal,
-            abstract=" ".join(words[i] for i in sorted(words)),
+            abstract=_openalex_text(item.get("abstract_inverted_index")),
             authors=author_string([a.get("author", {}).get("display_name", "") for a in item.get("authorships", [])]),
             doi=find_doi(item.get("doi")),
         ))
@@ -136,22 +148,43 @@ def fetch_arxiv(cfg: Settings) -> list[Paper]:
     return papers
 
 
-def fill_elsevier_abstracts(papers: list[Paper], api_key: str) -> int:
-    """Elsevier withholds abstracts from OpenAlex and Crossref; its own API gives them. Returns how many were filled."""
-    filled = 0
-    for p in papers:
-        if p.abstract or not (p.doi or "").startswith("10.1016/"):
+def fill_abstracts(cfg: Settings, papers: list[Paper], openalex_key: str | None = None,
+                   elsevier_key: str | None = None) -> int:
+    """Look up missing abstracts by DOI: OpenAlex (50 at a time), then Crossref, then Elsevier's own API for
+    Elsevier papers, which withhold abstracts from the other two. Returns how many were filled."""
+    missing = [p for p in papers if p.doi and not p.has_abstract()]
+    by_doi = {p.doi: p for p in missing}
+    headers = {"Authorization": f"Bearer {openalex_key}"} if openalex_key else {}
+    dois = list(by_doi)
+    for i in range(0, len(dois), 50):
+        try:
+            resp = requests.get("https://api.openalex.org/works", headers=headers, timeout=30, params={
+                "filter": "doi:" + "|".join(dois[i:i + 50]), "select": "doi,abstract_inverted_index",
+                "per-page": 50, "mailto": cfg.contact_email})
+            results = resp.json().get("results", []) if resp.ok else []
+        except Exception:
+            results = []
+        for w in results:
+            p = by_doi.get(find_doi(w.get("doi")))
+            if p and (text := _openalex_text(w.get("abstract_inverted_index"))):
+                p.abstract = text
+    for p in missing:
+        if p.has_abstract():
             continue
         try:
-            resp = requests.get(f"https://api.elsevier.com/content/article/doi/{p.doi}", params={"view": "META_ABS"},
-                                headers={"X-ELS-APIKey": api_key, "Accept": "application/json"}, timeout=20)
-            core = resp.json().get("full-text-retrieval-response", {}).get("coredata", {}) if resp.ok else {}
-        except Exception:  # a missing abstract only means judging on the title
+            resp = requests.get(f"https://api.crossref.org/works/{requests.utils.quote(p.doi, safe='')}",
+                                headers=_polite(cfg), timeout=20)
+            text = strip_html(resp.json()["message"].get("abstract", "")) if resp.ok else ""
+            if elsevier_key and not text and p.doi.startswith("10.1016/"):
+                resp = requests.get(f"https://api.elsevier.com/content/article/doi/{p.doi}", params={"view": "META_ABS"},
+                                    headers={"X-ELS-APIKey": elsevier_key, "Accept": "application/json"}, timeout=20)
+                core = resp.json().get("full-text-retrieval-response", {}).get("coredata", {}) if resp.ok else {}
+                text = strip_html(core.get("dc:description") or "")
+        except Exception:  # a missing abstract only delays the paper
             continue
-        if text := strip_html(core.get("dc:description") or ""):
+        if text:
             p.abstract = text
-            filled += 1
-    return filled
+    return sum(1 for p in missing if p.has_abstract())
 
 
 def fetch_all(cfg: Settings, openalex_key: str | None = None) -> tuple[list[Paper], list[str]]:

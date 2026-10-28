@@ -73,8 +73,8 @@ class FakeJev:
         return {q: self.answers.get(q, 0.0) for q in questions}, "jev-test"
 
 
-ABSTRACT = ("We study river floods across Ireland. Our forecasts give useful warnings two weeks ahead of floods. "
-            "Results are compared with gauges in many catchments.")
+ABSTRACT = ("We study river floods across Ireland and Britain. Our forecasts give useful warnings two weeks ahead of "
+            "floods. Results are compared with river gauges in many catchments over twenty years.")
 
 
 def test_judge_kept_paper_gets_a_verbatim_sentence(scope):

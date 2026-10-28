@@ -63,7 +63,7 @@ def _noul(instructions: str, yes: str, no: str) -> dict:
 
 def paper_state(paper: Paper) -> dict:
     return {"paper": {"title": paper.title, "journal": paper.source,
-                      "abstract": paper.abstract or "(no abstract in the feed; judge from the title)"}}
+                      "abstract": paper.abstract if paper.has_abstract() else "(no abstract; judge from the title)"}}
 
 
 def relevance_questions(scope: Scope) -> dict:
@@ -115,7 +115,7 @@ class Judgement:
 def judge(jev: Jev, paper: Paper, scope: Scope) -> Judgement:
     probs, model = jev.ask(paper_state(paper), relevance_questions(scope))
     j = Judgement(probs, decide(probs, scope), model)
-    sentences = split_sentences(paper.abstract)
+    sentences = split_sentences(paper.abstract) if paper.has_abstract() else []
     if j.kept and sentences:
         state = {"title": paper.title, "sentences": sentences}
         j.evidence_probs, _ = jev.ask(state, evidence_questions(len(sentences), scope.strand(j.kept[0])))

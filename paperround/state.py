@@ -2,6 +2,7 @@
 
 state/seen.txt           ids of every paper already judged (append only)
 state/judgements.jsonl   every paper's probabilities, so thresholds can change without asking Jev again
+state/waiting.tsv        papers held back until their abstract appears, with the day each was first seen
 paper_log.csv            kept papers, with their Zotero and email status; written only by this code
 """
 
@@ -19,6 +20,7 @@ class State:
     def __init__(self, root: Path):
         self.seen_path = root / "state" / "seen.txt"
         self.judgements_path = root / "state" / "judgements.jsonl"
+        self.waiting_path = root / "state" / "waiting.tsv"
         self.log_path = root / "paper_log.csv"
 
     def seen(self) -> set[str]:
@@ -36,6 +38,16 @@ class State:
         self.judgements_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.judgements_path, "a") as f:
             f.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in records)
+
+    def waiting(self) -> dict[str, str]:
+        """Paper id → the date it was first held back."""
+        if not self.waiting_path.exists():
+            return {}
+        return dict(line.split("\t", 1) for line in self.waiting_path.read_text().splitlines() if "\t" in line)
+
+    def write_waiting(self, waiting: dict[str, str]) -> None:
+        self.waiting_path.parent.mkdir(parents=True, exist_ok=True)
+        self.waiting_path.write_text("".join(f"{k}\t{d}\n" for k, d in sorted(waiting.items())))
 
     def read_log(self) -> list[dict]:
         if not self.log_path.exists():
